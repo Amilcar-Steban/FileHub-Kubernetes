@@ -1,9 +1,8 @@
-# Parcial 1 - Sistemas distribuidos
+# FileHub - Kubernetes y microservicios
 - Por:
-- Amilcar Steban Rodriguez - A00369769
-- Samuel Guerrero - A00365567
-
-## Parametros para parcial
+- Amilcar Steban Rodriguez
+  
+## Parámetros
 1. Java para el Backend
 2. SAMBA como almacenamiento centralizado
 3. Nginx como server para el front
