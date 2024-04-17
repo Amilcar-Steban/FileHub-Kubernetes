@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+      # Anotaciones específicas para el Ingress Controller de NGINX
+      nginx.ingress.kubernetes.io/use-regex: "true"
+      nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+  - host: minikube.local
+    http:
+      paths:
+      - path: /frontend(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      - path: /backend(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 4567

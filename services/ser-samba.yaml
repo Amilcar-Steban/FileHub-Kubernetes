@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sambadb
+spec:
+  selector:
+    app: sambadb
+  ports:
+    - name: user
+      protocol: TCP
+      port: 139
+      targetPort: 139
+    - name: udp
+      protocol: TCP
+      port: 445
+      targetPort: 445

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: samba-setup
+data:
+  setup.sh: |
+    #!/bin/sh
+    adduser --disabled-password --gecos "" user_samba
+    echo "user_samba:pass123." | chpasswd
+    echo -e "pass123.\npass123." | smbpasswd -s -a user_samba
+    exec smbd --foreground --no-process-group
+    chmod +x /home/steb/distribuidos/data/
+    tail -f /dev/null

@@ -1,0 +1,97 @@
+version: '3'
+services:
+  sambadb:
+    container_name: sambadb
+    build:
+      context: ./samba
+    ports:
+      - "139:139"
+      - "445:445"
+    networks:
+      - microparcial
+    volumes:
+      - samba:/home/steb/distribuidos/data
+
+  consul:
+    container_name: consul
+    image: consul:1.15
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    networks:
+      - microparcial
+    command: agent -server -bootstrap-expect 1 -ui -data-dir /tmp -client=0.0.0.0
+
+  balancer:
+    container_name: balancer
+    build:
+      context: ./load_balancer
+    ports:
+      - "5000:8080"
+      - "1936:1936"
+    networks:
+      - microparcial
+    
+  redis_data:
+    container_name: redis_data
+    image: redis:alpine
+    networks:
+      - microparcial
+    ports:
+      - "6379:6379"
+
+  gateway:
+    container_name: gateway
+    build:
+      context: ./apptg
+    networks:
+      - microparcial
+    volumes:
+        target: $(pwd):/var/lib/eg
+    ports:
+      - "8080:8080"
+      - "5555:9876"
+    depends_on:
+      - redis_data
+
+  backend1:
+    container_name: backendsmb
+    build:
+      context: ./backend/app
+    networks:
+      - microparcial
+    ports:
+      - "4567:4567"
+
+  backend2:
+    container_name: backendsmb2
+    build:
+      context: ./backend/app
+    networks:
+      - microparcial
+    ports:
+      - "4568:4567"
+
+  frontend1:
+    container_name: front-app
+    build:
+      context: ./frontend
+    networks:
+      - microparcial
+    ports:
+      - "8000:80"
+
+  frontend2:
+    container_name: front-app2
+    build:
+      context: ./frontend
+    networks:
+      - microparcial
+    ports:
+      - "8001:80"
+
+networks:
+  microparcial:
+
+volumes:
+  samba:

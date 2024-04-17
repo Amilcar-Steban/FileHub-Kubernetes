@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>FileHub</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Guarda tus archivos en Samba</h1>
+    
+    <!-- Formulario para subir archivos -->
+    <form id="upload-form" enctype="multipart/form-data">
+        <label for="file-input">Elegir archivo</label>
+        <input type="file" id="file-input" name="file" required onchange="previewFile()" />
+        <button type="button" onclick="uploadFile()">Subir Archivo</button>
+        <div id="file-preview"></div> <!-- Campo de vista previa -->
+    </form>
+    
+    <!-- Mensaje de estado -->
+    <div id="status-message"></div>
+    
+    <!-- Lista de archivos cargados -->
+    <h2>Archivos cargados:</h2>
+    <ul id="file-list"></ul>
+
+    <!-- Formulario para eliminar archivos -->
+    <form id="delete-form">
+        <label for="delete-file">Seleccionar archivo para eliminar:</label>
+        <select id="delete-file" name="delete-file"></select>
+        <button type="button" onclick="deleteFile()">Eliminar Archivo</button>
+    </form>
+    
+    <script>
+        // Función para previsualizar el archivo seleccionado
+        function previewFile() {
+            var fileInput = document.getElementById('file-input');
+            var filePreview = document.getElementById('file-preview');
+            if (fileInput.files.length > 0) {
+                var fileName = fileInput.files[0].name;
+                filePreview.textContent = fileName; // Muestra el nombre del archivo
+                filePreview.style.display = 'block'; // Muestra el campo de vista previa
+            }
+        }
+
+        // Función para eliminar archivos
+        function deleteFile() {
+            var deleteSelect = document.getElementById('delete-file');
+            var selectedFileName = deleteSelect.options[deleteSelect.selectedIndex].value;
+
+            if (!selectedFileName) {
+                alert('Por favor, selecciona un archivo para eliminar.');
+                return;
+            }
+
+            fetch('http://minikube.local/backend/delete/' + encodeURIComponent(selectedFileName), {
+                method: 'DELETE'
+            })
+            .then(response => response.text())
+            .then(data => {
+                var statusMessage = document.getElementById('status-message');
+                statusMessage.textContent = data;
+                statusMessage.style.display = 'block'; // Muestra la ventana flotante
+
+                // Oculta la ventana flotante después de 5 segundos
+                setTimeout(function() {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+
+                listFiles(); // Actualiza la lista después de la eliminación
+            })
+            .catch(error => {
+                var statusMessage = document.getElementById('status-message');
+                statusMessage.textContent = 'Error: ' + error.message;
+                statusMessage.style.display = 'block'; // Muestra la ventana flotante
+
+                // Oculta la ventana flotante después de 5 segundos
+                setTimeout(function() {
+                    statusMessage.style.display = 'none';
+                }, 5000);
+            });
+        }
+
+        // Función para subir archivos
+        function uploadFile() {
+            var fileInput = document.getElementById('file-input');
+            var filePreview = document.getElementById('file-preview');
+            if (fileInput.files.length === 0) {
+                alert('Por favor, selecciona un archivo para subir.');
+                return;
+            }
+            var file = fileInput.files[0];
+            var formData = new FormData();
+            formData.append('file', file);
+        
+            fetch('http://minikube.local/backend/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(data => {
+                var statusMessage = document.getElementById('status-message');
+                statusMessage.textContent = data;
+                statusMessage.style.display = 'block'; // Muestra la ventana flotante
+        
+                // Oculta la ventana flotante y el campo de vista previa después de 5 segundos
+                setTimeout(function() {
+                    statusMessage.style.display = 'none';
+                    filePreview.style.display = 'none'; // Oculta el campo de vista previa
+                }, 5000);
+        
+                listFiles(); // Actualiza la lista después de la carga
+            })
+            .catch(error => {
+                var statusMessage = document.getElementById('status-message');
+                statusMessage.textContent = 'Error: ' + error.message;
+                statusMessage.style.display = 'block'; // Muestra la ventana flotante
+        
+                // Oculta la ventana flotante y el campo de vista previa después de 5 segundos
+                setTimeout(function() {
+                    statusMessage.style.display = 'none';
+                    filePreview.style.display = 'none'; // Oculta el campo de vista previa
+                }, 5000);
+            });
+        }
+        
+        // Función para listar todos los archivos en forma LIFO
+        function listFiles() {
+            fetch('http://minikube.local/backend/get_file_list')
+            .then(response => response.json())
+            .then(data => {
+                var list = document.getElementById('file-list');
+                list.innerHTML = '';
+                data.forEach(file => {
+                    var listItem = document.createElement('li');
+                    listItem.textContent = file;
+                    list.insertBefore(listItem, list.firstChild);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('status-message').textContent = 'Error: ' + error.message;
+            });
+        }
+        // Listar archivos al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            listFiles();
+            
+            fetch('http://minikube.local/backend/get_file_list')
+            .then(response => response.json())
+            .then(data => {
+                var deleteSelect = document.getElementById('delete-file');
+                data.forEach(file => {
+                    var option = document.createElement('option');
+                    option.value = file;
+                    option.textContent = file;
+                    deleteSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+    </script>
+</body>
+</html>

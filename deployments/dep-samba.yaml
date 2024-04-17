@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sambadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sambadb
+  template:
+    metadata:
+      labels:
+        app: sambadb
+    spec:
+      containers:
+      - name: sambadb
+        image: stebanrodriguez/samba:0.1.0
+        ports:
+        - containerPort: 139
+        - containerPort: 445
+        volumeMounts:
+        - name: samba-setup
+          mountPath: /setup.sh
+          subPath: setup.sh
+          readOnly: false
+        - name: samba-data
+          mountPath: /home/steb/distribuidos/data
+        command: ["/bin/sh", "-c", "cp /setup.sh /tmp/setup.sh && chmod +x /tmp/setup.sh && /tmp/setup.sh"]
+      volumes:
+      - name: samba-data
+        persistentVolumeClaim:
+          claimName: samba-data-pvc
+      - name: samba-setup  # Añadido aquí
+        configMap:
+          name: samba-setup  # Añadido aquí

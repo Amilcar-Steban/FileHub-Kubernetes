@@ -1,0 +1,50 @@
+# api_gateway/gateway.config.yml
+http:
+  port: 8080
+
+admin:
+  port: 9876
+  host: localhost
+
+appEndpoints:
+  appback:
+    host: localhost
+    paths: ["/app", "/app/*"]
+  appfront:
+    host: localhost
+    paths: ["/", "/*"]
+serviceEndpoints:
+  appback:
+    url: "http://loadbalancer/app/"
+  appfront:
+    url: "http://loadbalancer/"
+
+policies:
+  - basic-auth
+  - cors
+  - expression
+  - key-auth
+  - log
+  - oauth2
+  - proxy
+  - rate-limit
+pipelines:
+  default:
+    appEndpoints:
+      - appback
+      - appfront
+    policies:
+      - key-auth:
+      - proxy:
+          - action:
+              serviceEndpoint: appback
+              changeOrigin: true
+              prependPath: false
+              ignorePath: false
+              stripPath: false
+          - action:
+              serviceEndpoint: appfront
+              changeOrigin: true
+              prependPath: false
+              ignorePath: false
+              stripPath: false
